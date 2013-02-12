@@ -291,16 +291,16 @@ bool PQXXBackend::getBuddies(long id, std::list<BuddyInfo> &roster) {
 		pqxx::nontransaction txn(*m_conn);
 
 		pqxx::result r = txn.exec("SELECT id, uin, subscription, nickname, groups, flags FROM " + m_prefix + "buddies WHERE user_id=" + pqxx::to_string(id) + " ORDER BY id ASC");
-		for (pqxx::result::const_iterator it = r.begin(); it != r.end(); it++)  {
+		for (pqxx::result::const_iterator it = r.begin(); it != r.end(); ++it)  {
 			BuddyInfo b;
 			std::string group;
 
-			b.id = it[0].as<long>();
-			b.legacyName = it[1].as<std::string>();
-			b.subscription = it[2].as<std::string>();
-			b.alias = it[3].as<std::string>();
-			group = it[4].as<std::string>();
-			b.flags = it[5].as<long>();
+			b.id = it["id"].as<long>();
+			b.legacyName = it["uin"].as<std::string>();
+			b.subscription = it["subscription"].as<std::string>();
+			b.alias = it["nickname"].as<std::string>();
+			group = it["groups"].as<std::string>();
+			b.flags = it["flags"].as<long>();
 
 			if (!group.empty()) {
 				b.groups = StorageBackend::deserializeGroups(group);
@@ -311,16 +311,16 @@ bool PQXXBackend::getBuddies(long id, std::list<BuddyInfo> &roster) {
 
 
 		r = txn.exec("SELECT buddy_id, type, var, value FROM " + m_prefix + "buddies_settings WHERE user_id=" + pqxx::to_string(id) + " ORDER BY buddy_id ASC");
-		for (pqxx::result::const_iterator it = r.begin(); it != r.end(); it++)  {
+		for (pqxx::result::const_iterator it = r.begin(); it != r.end(); ++it)  {
 			SettingVariableInfo var;
 			long buddy_id = -1;
 			std::string key;
 			std::string val;
 
-			buddy_id = it[0].as<long>();
-			var.type = it[1].as<long>();
-			key = it[2].as<std::string>();
-			val = it[3].as<std::string>();
+			buddy_id = it["buddy_id"].as<long>();
+			var.type = it["type"].as<long>();
+			key = it["var"].as<std::string>();
+			val = it["value"].as<std::string>();
 			switch (var.type) {
 				case TYPE_BOOLEAN:
 					var.b = atoi(val.c_str());
